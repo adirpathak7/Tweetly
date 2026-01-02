@@ -5,8 +5,7 @@ const registerValidation = Joi.object({
   email: Joi.string().email().required(),
   gender: Joi.valid("male", "female", "other").required(),
   dateOfBirth: Joi.date().required(),
-  password: Joi.string().min(3).max(25).required(),
-  roleId: Joi.valid(1, 2).required(),
+  password: Joi.string().min(3).max(25).required()
 });
 
 const loginValidation = Joi.object({

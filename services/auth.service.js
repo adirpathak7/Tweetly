@@ -1,9 +1,13 @@
-const User = require("../models/user.model.js");
+const db = require("../models/index.js");
+const User = db.User;
+const { Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
 
 const registerUser = async (data) => {
   const existingUser = await User.findOne({
-    $or: [{ username: data.username }, { email: data.email }],
+    where: {
+      [Op.or]: [{ username: data.username }, { email: data.email }],
+    },
   });
 
   if (existingUser) {
@@ -23,7 +27,7 @@ const registerUser = async (data) => {
 };
 
 const loginUser = async (email, password) => {
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ where: { email } });
 
   if (!existingUser || existingUser == null) {
     throw new Error("User doesn't exists!");
