@@ -1,4 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
+<<<<<<< HEAD
     const Role = sequelize.define(
         "Role",
         {
@@ -20,3 +21,26 @@ module.exports = (sequelize, DataTypes) => {
     )
     return Role
 }
+=======
+  const Role = sequelize.define(
+    "Role",
+    {
+      roleId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      role: {
+        type: DataTypes.ENUM("admin", "user"),
+        allowNull: false,
+        defaultValue: "user",
+      },
+    },
+    {
+      tableName: "roles",
+      timestamps: true,
+    }
+  );
+  return Role;
+};
+>>>>>>> origin/office
