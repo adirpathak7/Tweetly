@@ -1,12 +1,167 @@
- hey bro I'm developing a node project which's simple explanation is creating a simple x clone like user can post their post's and add edit delete post's and other's can comment on that post, there will be 2 role admin and user using migration there will be one admin and admin can make other user admin for this application I have created a simple db design please check it is it correct or not
-I have to use mysql, node.js, express.js there is no frontend you have to check my db design if there is anything wrong so you have to suggest me
+# 🧩 Tweetly — Node.js REST API
 
-tables
+**Tweetly** is a clean, well-documented backend for managing users, posts, and comments with secure authentication and role-based access control (RBAC).
 
-roles:- roleId, role, createdAt (current time stamp)
+---
 
-users:- userId, username, email, gender, age, password, roleId, isDeleted, deletedBy, deletedAt, createdAt, updatedAt
+## ✨ Highlights
+- **Authentication:** JWT-based auth with bcrypt password hashing
+- **Authorization:** Role-based access (ADMIN, USER)
+- **Features:** Create/read/update/delete posts and comments
+- **ORM:** Sequelize (supports MySQL, PostgreSQL)
 
-posts:- postId, postDetails, type (text/file), fileURL, usersId, isDeleted, deletedBy, deletedAt, createdAt, updatedAt
+---
 
-comments:- commentId, comment, postId, userId, isDeleted, deletedBy, deletedAt, createdAt, updatedAt
+## 📚 Table of Contents
+1. [Features](#-features)
+2. [Quick Start](#-quick-start)
+3. [Environment Variables](#-environment-variables)
+4. [Project Structure](#-project-structure)
+5. [API Overview](#-api-overview)
+6. [Seeding](#-seeding)
+7. [Contributing](#-contributing)
+8. [License](#-license)
+
+---
+
+## 🚀 Features
+- User registration and login
+- Password hashing with **bcrypt**
+- **JWT** authentication and middleware-protected routes
+- **RBAC**: ADMIN and USER roles
+- CRUD for posts and comments with ownership checks
+- Seeders for roles and initial users
+
+---
+
+## ⚙️ Quick Start
+Prerequisites:
+- Node.js (v16+ recommended)
+- npm or yarn
+- A running SQL database (MySQL or PostgreSQL)
+
+Steps:
+```bash
+# Clone & install
+git clone <repo-url>
+cd your-repo
+npm install
+
+# Create .env (see below)
+# Run migrations / seed if available
+npm run seed
+
+# Start development server
+npm run dev
+```
+
+> Tip: Use `npm run start` for production if configured.
+
+---
+
+## 🔐 Environment Variables
+Create a `.env` file in the project root and set the following values:
+
+```env
+# Server
+PORT=3000
+
+# Database
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=yourpassword
+DB_NAME=your_database
+
+# Security
+JWT_SECRET=your_super_secret_key
+JWT_EXPIRES_IN=1d
+
+# Optional
+NODE_ENV=development
+```
+
+---
+
+## 📁 Project Structure
+A quick look at the repo layout (top-level):
+
+```
+.
+├── app.js
+├── bin/
+│   └── www
+├── config/
+│   └── config.js
+├── controllers/
+├── models/
+├── routes/
+├── services/
+├── validations/
+├── public/
+├── seeders/
+├── package.json
+└── README.md
+```
+
+> See the `/routes` and `/controllers` folders for available endpoints and their handlers.
+
+---
+
+## 🔍 API Overview
+Common endpoints (examples):
+
+- Auth
+  - `POST /api/auth/register` — Register a new user
+  - `POST /api/auth/login` — Authenticate and receive a JWT
+
+- Users
+  - `GET  /api/users` — Get users (protected)
+
+- Posts
+  - `GET  /api/posts` — List all posts
+  - `POST /api/posts` — Create a post (authenticated)
+  - `GET  /api/posts/:id` — Get a single post
+  - `PUT  /api/posts/:id` — Update a post (owner or admin)
+  - `DELETE /api/posts/:id` — Delete a post (owner or admin)
+
+- Comments
+  - `POST   /api/posts/:postId/comments` — Add a comment
+  - `DELETE /api/comments/:id` — Delete a comment (owner / post owner / admin)
+
+> For full documentation, check the `routes/` folder or add Swagger/OpenAPI docs.
+
+---
+
+## 🌱 Seeding
+Seed initial roles and a demo user:
+
+```bash
+npm run seed
+```
+
+(Adjust seed script to match your project's package.json.)
+
+---
+
+## 🤝 Contributing
+- Fork the repo
+- Create a branch: `git checkout -b feature/your-feature`
+- Commit your changes: `git commit -m "feat: add something"
+- Push to the branch and create a PR
+
+Please keep code style consistent and add tests where applicable.
+
+---
+
+## 📄 License
+MIT — see `LICENSE` file for details.
+
+---
+
+If you'd like, I can also:
+- Add a Table of Contents with links (done)
+- Add badges (Node, build, license)
+- Generate a basic Swagger/OpenAPI spec from existing routes
+
+If you want any of those, tell me which one and I'll add it ✅
