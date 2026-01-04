@@ -13,7 +13,8 @@ module.exports = (sequelize, DataTypes) => {
       },
       mediaURL: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: null,
       },
       mediaType: {
         type: DataTypes.ENUM("none", "image", "video"),
@@ -39,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       tableName: "posts",
-      timestamp: true,
+      timestamps: true,
     }
   );
   return Post;

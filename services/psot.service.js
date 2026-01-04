@@ -12,4 +12,32 @@ const getPosts = async (userId) => {
     });
 };
 
-module.exports = { getPosts };
+const getPostById = async (postId, userId) => {
+    const post = await Post.findOne({
+        where: {
+            postId,
+            isDeleted: false,
+        },
+    });
+
+    if (!post) return null;
+
+    // hide user's own post (per requirement)
+    if (post.userId === userId) return null;
+
+    return post;
+};
+
+const createPost = async (data, userId) => {
+    const payload = {
+        content: data.content,
+        mediaURL: data.mediaURL,
+        mediaType: data.mediaType,
+        userId: userId,
+    };
+
+    const newPost = await Post.create(payload);
+    return newPost;
+};
+
+module.exports = { getPosts, getPostById, createPost };
