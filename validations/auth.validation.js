@@ -9,7 +9,7 @@ const registerValidation = Joi.object({
 });
 
 const loginValidation = Joi.object({
-  email: Joi.string().email().required(),
+  identifier: Joi.string().required(),
   password: Joi.string().required(),
 });
 

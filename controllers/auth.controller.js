@@ -39,7 +39,7 @@ const login = async (req, res) => {
   }
 
   try {
-    const data = await loginUser(req.body.email, req.body.password);
+    const data = await loginUser(req.body.identifier, req.body.password);
     res.status(200).json({
       success: true,
       ...data,

@@ -22,12 +22,16 @@ const registerUser = async (data) => {
     gender: user.gender,
     dateOfBirth: user.dateOfBirth,
     password: user.password,
-    roleId: user.roleId,
   };
 };
 
-const loginUser = async (email, password) => {
-  const existingUser = await User.findOne({ where: { email } });
+const loginUser = async (identifier, password) => {
+  const existingUser = await User.findOne({
+    where: {
+      [Op.or]: [{ email: identifier }, { username: identifier }],
+      isDeleted: false
+    }
+  });
 
   if (!existingUser || existingUser == null) {
     throw new Error("User doesn't exists!");
