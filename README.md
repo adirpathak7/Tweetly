@@ -114,20 +114,22 @@ Common endpoints (examples):
 - Auth
   - `POST /api/auth/register` — Register a new user
   - `POST /api/auth/login` — Authenticate and receive a JWT
-
-- Users
-  - `GET  /api/users` — Get users (protected)
+  - `PUT /api/auth/promote/:userId` - Promote user as an admin (authenticated)
+  - `DELETE /api/auth/deleteUser/:userId` - Delete user by admin (authenticated)
+  - `GET /api/auth/getAllUser` - Admin can view all user (authenticated)
 
 - Posts
-  - `GET  /api/posts` — List all posts
+  - `GET  /api/posts` — List all posts (authenticated)
   - `POST /api/posts` — Create a post (authenticated)
-  - `GET  /api/posts/:id` — Get a single post
-  - `PUT  /api/posts/:id` — Update a post (owner or admin)
-  - `DELETE /api/posts/:id` — Delete a post (owner or admin)
+  - `GET  /api/posts/:id` — Get a single post (authenticated)
+  - `PUT  /api/posts/:id` — Update a post (owner or admin) (authenticated)
+  - `DELETE /api/posts/:id` — Delete a post (owner or admin) (authenticated)
 
 - Comments
-  - `POST   /api/posts/:postId/comments` — Add a comment
-  - `DELETE /api/comments/:id` — Delete a comment (owner / post owner / admin)
+  - `GET /api/posts/:postId` - Get all comments on post
+  - `POST   /api/posts/:postId` — Add a comment on post
+  - `PUT /api/posts/:postId/:commentId` - Edit comment of perticular post
+  - `DELETE /api/:postId/:commentId` — Delete a comment (owner / post owner / admin)
 
 > For full documentation, check the `routes/` folder or add Swagger/OpenAPI docs.
 
