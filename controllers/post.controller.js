@@ -45,7 +45,7 @@ exports.getPostById = async (req, res) => {
 exports.createPost = async (req, res) => {
   try {
     const userId = req.user && req.user.userId;
-    console.log("userId is:- ", userId);
+    // console.log("userId is:- ", userId);
 
     if (!userId)
       return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -59,7 +59,7 @@ exports.createPost = async (req, res) => {
       });
     }
     const post = await createPost(req.body, userId);
-    console.log("post data: ", post);
+    // console.log("post data: ", post);
 
     if (post) {
       res.status(201).json({
@@ -126,13 +126,11 @@ exports.softDeletePost = async (req, res) => {
     const postId = parseInt(req.params.id);
 
     if (!userId)
-        
       return res.status(401).json({ success: false, message: "Unauthorized!" });
     if (!postId || postId === null)
       return res
         .status(401)
         .json({ success: false, message: "Please provide postid!" });
-
 
     const post = await softDeletePost(postId, userId);
 

@@ -1,7 +1,5 @@
-const { logger } = require("sequelize/lib/utils/logger");
-const db = require("../models");
-const Post = db.Post;
-const { Op, where } = require("sequelize");
+const { Op } = require("sequelize");
+const { Post } = require("../models");
 
 const getPosts = async (userId) => {
   return await Post.findAll({
@@ -69,8 +67,8 @@ const editPost = async (data, postId) => {
 };
 
 const softDeletePost = async (postId, userId) => {
-  console.log("userId: ", userId);
-  console.log("postId: ", postId);
+  // console.log("userId: ", userId);
+  // console.log("postId: ", postId);
 
   const existPost = await Post.findByPk(postId);
 

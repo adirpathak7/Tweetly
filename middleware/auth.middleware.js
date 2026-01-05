@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { Post } = require("../models");
+const { Post, Comment } = require("../models");
 
 const authMiddleware = (checkRole = false) => {
   return async (req, res, next) => {
@@ -23,26 +23,40 @@ const authMiddleware = (checkRole = false) => {
       const token = authHeader.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      req.user = { userId: decoded.userId, roleId: decoded.roleId };
+
       if (checkRole) {
-        const postId = req.params.id;
+        const postId = parseInt(req.params.id || req.params.postId, 10);
+        if (isNaN(postId)) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Invalid post id" });
+        }
+
         const post = await Post.findByPk(postId);
-
         if (!post) {
-          return res.status(404).json({
-            success: false,
-            message: "Post not found",
-          });
+          return res
+            .status(404)
+            .json({ success: false, message: "Post not found" });
         }
 
-        if (post.userId !== decoded.userId && decoded.roleId !== 2) {
-          return res.status(403).json({
-            success: false,
-            message: "You are not authorized to modify this post!",
-          });
+        if (post.userId === req.user.userId || req.user.roleId === 2) {
+          return next();
         }
+
+        const comment = await Comment.findOne({
+          where: { postId, userId: req.user.userId },
+        });
+        if (comment) {
+          return next();
+        }
+
+        return res.status(403).json({
+          success: false,
+          message: "You are not authorized to modify this post!",
+        });
       }
 
-      req.user = decoded;
       next();
     } catch (error) {
       return res.status(401).json({
