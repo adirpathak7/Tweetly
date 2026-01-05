@@ -1,9 +1,23 @@
-const Joi = require('joi');
+const Joi = require("joi");
 
 const createPostValidation = Joi.object({
-    content: Joi.string().max(1000)
-    //   mediaURL: Joi.string().uri().allow(null, '').default(null),
-    //   mediaType: Joi.string().valid('none', 'image', 'video').default('none'),
-}).or('content', 'mediaURL');
+  content: Joi.string().required(),
+  mediaURL: Joi.string().allow(null),
+  mediaType: Joi.string().default("none"),
+});
 
-module.exports = { createPostValidation };
+const editPostValidation = Joi.object({
+  content: Joi.string().required(),
+  mediaURL: Joi.string().allow(null),
+  mediaType: Joi.string().default("none"),
+});
+
+const deletePostValidation = Joi.object({
+  deletedBy: Joi.required(),
+});
+
+module.exports = {
+  createPostValidation,
+  editPostValidation,
+  deletePostValidation,
+};

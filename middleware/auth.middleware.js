@@ -1,36 +1,56 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const { Post } = require("../models");
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = (checkRole = false) => {
+  return async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
+      const authHeader = req.headers.authorization;
 
-        if (!authHeader) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authorization header missing',
-            });
-        }
-
-        if (!authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({
-                success: false,
-                message: 'Invalid authorization format',
-            });
-        }
-
-        const token = authHeader.split(' ')[1];
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        req.user = { userId: decoded.userId };
-
-        next();
-    } catch (error) {
+      if (!authHeader) {
         return res.status(401).json({
-            success: false,
-            message: 'Unauthorized or token expired',
+          success: false,
+          message: "Authorization header missing",
         });
+      }
+
+      if (!authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid authorization format",
+        });
+      }
+
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      if (checkRole) {
+        const postId = req.params.id;
+        const post = await Post.findByPk(postId);
+
+        if (!post) {
+          return res.status(404).json({
+            success: false,
+            message: "Post not found",
+          });
+        }
+
+        if (post.userId !== decoded.userId && decoded.roleId !== 2) {
+          return res.status(403).json({
+            success: false,
+            message: "You are not authorized to modify this post!",
+          });
+        }
+      }
+
+      req.user = decoded;
+      next();
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized or token expired",
+      });
     }
+  };
 };
 
 module.exports = authMiddleware;

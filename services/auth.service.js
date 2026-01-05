@@ -29,8 +29,8 @@ const loginUser = async (identifier, password) => {
   const existingUser = await User.findOne({
     where: {
       [Op.or]: [{ email: identifier }, { username: identifier }],
-      isDeleted: false
-    }
+      isDeleted: false,
+    },
   });
 
   if (!existingUser || existingUser == null) {
@@ -43,10 +43,14 @@ const loginUser = async (identifier, password) => {
   }
 
   const token = jwt.sign(
-    { userId: existingUser.userId, email: existingUser.email },
+    {
+      userId: existingUser.userId,
+      email: existingUser.email,
+      roleId: existingUser.roleId,
+    },
     process.env.JWT_SECRET,
     {
-      expiresIn: "1d",
+      expiresIn: "2H",
     }
   );
 
