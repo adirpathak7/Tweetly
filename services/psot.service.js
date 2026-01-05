@@ -47,7 +47,7 @@ const editPost = async (data, postId) => {
   const existPost = await Post.findByPk(postId);
   //   console.log("in service existPost: ", existPost, typeof existPost);
 
-  if (!existPost || existPost == null) {
+  if (!existPost || existPost === null || existPost.isDeleted) {
     throw new Error("Post doesn't exists!");
   }
 
@@ -61,6 +61,7 @@ const editPost = async (data, postId) => {
   const editedPost = await Post.update(payload, {
     where: {
       postId: postId,
+      isDeleted: false,
     },
   });
   return editedPost;

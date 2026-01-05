@@ -102,7 +102,7 @@ exports.editPost = async (req, res) => {
       });
     }
     const post = await editPost(req.body, postId);
-    // console.log("editPost data: ", post);
+    console.log("editPost data: ", post);
 
     if (post) {
       res.status(201).json({

@@ -46,6 +46,7 @@ exports.editComment = async (data, postId, userId, commentId) => {
       postId: postId,
       userId: userId,
       commentId: commentId,
+      isDeleted: false,
     },
   });
 
