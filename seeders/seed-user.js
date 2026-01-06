@@ -17,7 +17,7 @@ module.exports = {
       `select roleId from roles where role = "admin"`
     );
 
-    console.log("admin role: ", rolesData[0].roleId);
+    // console.log("admin role: ", rolesData[0].roleId);
 
     if (!rolesData || rolesData == null) {
       throw new Error("admin role is not exist!");
@@ -33,8 +33,8 @@ module.exports = {
         dateOfBirth: "1990-01-01",
         password: hashPassword,
         roleId: rolesData[0].roleId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toLocaleString(),
+        updatedAt: new Date().toLocaleString(),
       },
     ]);
   },

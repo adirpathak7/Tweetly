@@ -1,16 +1,16 @@
 const Joi = require("joi");
 
 const registerValidation = Joi.object({
-  username: Joi.string().min(3).max(20).required(),
-  email: Joi.string().email().required(),
+  username: Joi.string().min(3).max(20).trim().required(),
+  email: Joi.string().email().trim().required(),
   gender: Joi.valid("male", "female", "other").required(),
   dateOfBirth: Joi.date().required(),
-  password: Joi.string().min(3).max(25).required()
+  password: Joi.string().min(3).max(25).trim().required(),
 });
 
 const loginValidation = Joi.object({
-  identifier: Joi.string().required(),
-  password: Joi.string().required(),
+  identifier: Joi.string().trim().required(),
+  password: Joi.string().trim().required(),
 });
 
 module.exports = { registerValidation, loginValidation };

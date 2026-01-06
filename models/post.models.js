@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       mediaType: {
         type: DataTypes.ENUM("none", "image", "video"),
-        allowNull: false,
+        allowNull: true,
         defaultValue: "none",
       },
       userId: {

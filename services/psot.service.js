@@ -1,43 +1,104 @@
-const db = require("../models");
-const Post = db.Post;
 const { Op } = require("sequelize");
+const { Post } = require("../models");
 
 const getPosts = async (userId) => {
-    return await Post.findAll({
-        where: {
-            userId: { [Op.ne]: userId },
-            isDeleted: false,
-        },
-        order: [["createdAt", "DESC"]],
-    });
+  const allPost = await Post.findAll({
+    where: {
+      userId: { [Op.ne]: userId },
+      isDeleted: false,
+    },
+    order: [["createdAt", "DESC"]],
+  });
+  if (!allPost) return null;
 };
 
 const getPostById = async (postId, userId) => {
-    const post = await Post.findOne({
-        where: {
-            postId,
-            isDeleted: false,
-        },
-    });
+  const post = await Post.findOne({
+    where: {
+      postId,
+      isDeleted: false,
+    },
+  });
 
-    if (!post) return null;
+  if (!post) return null;
 
-    // hide user's own post (per requirement)
-    if (post.userId === userId) return null;
+  if (post.userId === userId) return null;
 
-    return post;
+  return post;
 };
+
+const getOwnCreatedPost = async (userId) => {};
 
 const createPost = async (data, userId) => {
-    const payload = {
-        content: data.content,
-        mediaURL: data.mediaURL,
-        mediaType: data.mediaType,
-        userId: userId,
-    };
+  // console.log("data: ", data);
 
-    const newPost = await Post.create(payload);
-    return newPost;
+  const payload = {
+    content: data.content,
+    mediaURL: data.mediaURL || null,
+    mediaType: data.mediaType || "none",
+    userId: userId,
+  };
+  //   console.log("payload: ", payload);
+
+  const newPost = await Post.create(payload);
+  return newPost;
 };
 
-module.exports = { getPosts, getPostById, createPost };
+const editPost = async (data, postId) => {
+  //   console.log("in service postId: ", postId, typeof postId);
+
+  const existPost = await Post.findByPk(postId);
+  //   console.log("in service existPost: ", existPost, typeof existPost);
+
+  if (!existPost || existPost === null || existPost.isDeleted) {
+    throw new Error("Post doesn't exists!");
+  }
+
+  const payload = {
+    content: data.content,
+    mediaURL: data.mediaURL || null,
+    mediaType: data.mediaType || "none",
+    updatedAt: new Date().toLocaleString(),
+  };
+
+  const editedPost = await Post.update(payload, {
+    where: {
+      postId: postId,
+      isDeleted: false,
+    },
+  });
+  return editedPost;
+};
+
+const softDeletePost = async (postId, userId) => {
+  // console.log("userId: ", userId);
+  // console.log("postId: ", postId);
+
+  const existPost = await Post.findByPk(postId);
+
+  if (!existPost || existPost == null) {
+    throw new Error("Post doesn't exists!");
+  }
+
+  const payload = {
+    isDeleted: true,
+    deletedBy: userId,
+    deletedAt: new Date().toLocaleString(),
+    updatedAt: new Date().toLocaleString(),
+  };
+
+  const deletePost = await Post.update(payload, {
+    where: {
+      postId: postId,
+    },
+  });
+  return deletePost;
+};
+
+module.exports = {
+  getPosts,
+  getPostById,
+  createPost,
+  editPost,
+  softDeletePost,
+};
