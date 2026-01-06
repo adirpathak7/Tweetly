@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       roleId: {
         type: DataTypes.INTEGER,
-        defaultValue: 1
+        defaultValue: 1,
       },
       isDeleted: {
         type: DataTypes.BOOLEAN,

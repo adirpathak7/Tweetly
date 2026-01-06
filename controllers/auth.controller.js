@@ -15,7 +15,7 @@ const register = async (req, res) => {
   if (error) {
     return res.status(400).json({
       success: false,
-      message: error.details[0].message,
+      message: error.message,
     });
   }
 
@@ -39,7 +39,7 @@ const login = async (req, res) => {
   if (error) {
     return res.status(400).json({
       success: false,
-      message: error.details[0].message,
+      message: error.message,
     });
   }
 

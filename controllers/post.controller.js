@@ -14,7 +14,15 @@ const {
 exports.getPosts = async (req, res) => {
   try {
     const userId = req.user && req.user.userId;
-    const posts = await getPosts(userId || 0);
+    if (!userId || userId === null)
+      return res.status(401).json({ success: false, message: "Unauthorized!" });
+
+    const posts = await getPosts(userId);
+    if (!posts || posts === null)
+      return res
+        .status(404)
+        .json({ success: false, message: "No post found!" });
+
     return res.json({ success: true, data: posts });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -24,6 +32,9 @@ exports.getPosts = async (req, res) => {
 exports.getPostById = async (req, res) => {
   try {
     const userId = req.user && req.user.userId;
+    if (!userId || userId === null)
+      return res.status(401).json({ success: false, message: "Unauthorized!" });
+
     const postId = parseInt(req.params.id, 10);
     if (isNaN(postId))
       return res
@@ -47,7 +58,7 @@ exports.createPost = async (req, res) => {
     const userId = req.user && req.user.userId;
     // console.log("userId is:- ", userId);
 
-    if (!userId)
+    if (!userId || userId === null)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const { error } = createPostValidation.validate(req.body);

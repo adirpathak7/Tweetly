@@ -2,13 +2,14 @@ const { Op } = require("sequelize");
 const { Post } = require("../models");
 
 const getPosts = async (userId) => {
-  return await Post.findAll({
+  const allPost = await Post.findAll({
     where: {
       userId: { [Op.ne]: userId },
       isDeleted: false,
     },
     order: [["createdAt", "DESC"]],
   });
+  if (!allPost) return null;
 };
 
 const getPostById = async (postId, userId) => {
@@ -25,6 +26,8 @@ const getPostById = async (postId, userId) => {
 
   return post;
 };
+
+const getOwnCreatedPost = async (userId) => {};
 
 const createPost = async (data, userId) => {
   // console.log("data: ", data);
