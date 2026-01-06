@@ -14,10 +14,11 @@ const {
 exports.getPosts = async (req, res) => {
   try {
     const userId = req.user && req.user.userId;
-    if (!userId || userId === null)
+    const roleId = req.user.roleId;
+    if (!userId || userId === null || !roleId)
       return res.status(401).json({ success: false, message: "Unauthorized!" });
 
-    const posts = await getPosts(userId);
+    const posts = await getPosts(userId, roleId);
     if (!posts || posts === null)
       return res
         .status(404)
@@ -32,7 +33,9 @@ exports.getPosts = async (req, res) => {
 exports.getPostById = async (req, res) => {
   try {
     const userId = req.user && req.user.userId;
-    if (!userId || userId === null)
+    const roleId = req.user.roleId;
+
+    if (!userId || userId === null || !roleId)
       return res.status(401).json({ success: false, message: "Unauthorized!" });
 
     const postId = parseInt(req.params.id, 10);
@@ -41,7 +44,7 @@ exports.getPostById = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid post id" });
 
-    const post = await getPostById(postId, userId || 0);
+    const post = await getPostById(postId, userId, roleId);
     if (!post)
       return res
         .status(404)
