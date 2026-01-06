@@ -9,8 +9,8 @@ const registerValidation = Joi.object({
 });
 
 const loginValidation = Joi.object({
-  identifier: Joi.string().trim().required(),
-  password: Joi.string().trim().required(),
+  identifier: Joi.string().required(),
+  password: Joi.string().required(),
 });
 
 module.exports = { registerValidation, loginValidation };

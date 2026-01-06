@@ -68,7 +68,7 @@ const loginUser = async (identifier, password) => {
 
     return { token };
   } catch (error) {
-    throw new Error("Something went wrong!", error.message);
+    throw error;
   }
 };
 
@@ -134,4 +134,29 @@ const softDeleteUser = async (userId, adminId) => {
   }
 };
 
-module.exports = { registerUser, loginUser, makeUserAdmin, softDeleteUser };
+const isDeletedUser = async (userId) => {
+  try {
+    const existingUser = await User.findOne({
+      where: {
+        userId: userId,
+        isDeleted: false,
+      },
+    });
+
+    if (!existingUser) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    throw new Error("Something went wrong!", error.message);
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  makeUserAdmin,
+  softDeleteUser,
+  isDeletedUser,
+};

@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const { Post } = require("../models");
+const { isDeletedUser } = require("./auth.service");
 
 const getPosts = async (userId) => {
   const allPost = await Post.findAll({
@@ -9,7 +10,9 @@ const getPosts = async (userId) => {
     },
     order: [["createdAt", "DESC"]],
   });
+  // if(allPost && isDeletedUser)
   if (!allPost) return null;
+  return allPost;
 };
 
 const getPostById = async (postId, userId) => {
@@ -27,7 +30,7 @@ const getPostById = async (postId, userId) => {
   return post;
 };
 
-const getOwnCreatedPost = async (userId) => {};
+// const getOwnCreatedPost = async (userId) => {};
 
 const createPost = async (data, userId) => {
   // console.log("data: ", data);

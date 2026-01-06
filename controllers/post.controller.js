@@ -69,8 +69,20 @@ exports.createPost = async (req, res) => {
         message: error.details[0].message,
       });
     }
-    const post = await createPost(req.body, userId);
-    // console.log("post data: ", post);
+
+    let mediaURL = null;
+    let mediaType = "none";
+
+    if (req.file) {
+      mediaURL = `/uploads/${req.file.filename}`;
+      mediaType = "image";
+    }
+    const postData = {
+      ...req.body,
+      mediaURL,
+      mediaType,
+    };
+    const post = await createPost(postData, userId);
 
     if (post) {
       res.status(201).json({
@@ -112,8 +124,22 @@ exports.editPost = async (req, res) => {
         message: error.details[0].message,
       });
     }
-    const post = await editPost(req.body, postId);
-    console.log("editPost data: ", post);
+
+    let mediaURL = null;
+    let mediaType = "none";
+
+    if (req.file) {
+      mediaURL = `uploads/${req.file.filename}`;
+      mediaType = "image";
+    }
+
+    const postData = {
+      ...req.body,
+      mediaURL,
+      mediaType,
+    };
+    const post = await editPost(postData, postId);
+    // console.log("editPost data: ", post);
 
     if (post) {
       res.status(201).json({
