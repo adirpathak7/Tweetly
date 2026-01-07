@@ -2,11 +2,14 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const bodyParser = require("body-parser");
 
 const indexRouter = require("./routes/index.js");
 const usersRouter = require("./routes/auth.js");
 const postsRouter = require("./routes/post.js");
 const commentsRouter = require("./routes/comment.js");
+const globalErrorHandlerMiddelware = require("./middleware/globalErrorHandler.middelware.js");
+const ApiError = require("./utils/ApiError.js");
 
 const app = express();
 
@@ -18,10 +21,16 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Error handler
+
 // Routes
 app.use("/", indexRouter);
 app.use("/auth", usersRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentsRouter);
 
+app.all("*", (req, res, next) => {
+  next(new ApiError(`Route not found: ${req.originalUrl}`, 404));
+});
+app.use(globalErrorHandlerMiddelware);
 module.exports = app;

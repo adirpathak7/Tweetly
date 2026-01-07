@@ -1,5 +1,5 @@
 const { Op, where } = require("sequelize");
-const { Post, User } = require("../models");
+const { Post, User, Comment } = require("../models");
 const { isDeletedUser } = require("./auth.service");
 
 const getPosts = async (userId, roleId) => {
@@ -34,8 +34,18 @@ const getPostById = async (postId, roleId) => {
         attributes: ["isDeleted"],
         where: roleId === 2 ? {} : { isDeleted: false },
       },
+      {
+        model: Comment,
+        attributes: ["isDeleted", "postId"],
+        where: postId === post.postId,
+        isDeleted: false,
+      },
     ],
   });
+
+  console.log("postId data: ", postId);
+  console.log("roleId data: ", roleId);
+  console.log("post data: ", post);
 
   if (!post) return null;
 

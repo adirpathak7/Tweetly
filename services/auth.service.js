@@ -5,16 +5,21 @@ const jwt = require("jsonwebtoken");
 
 const registerUser = async (data) => {
   try {
+    console.log("data: ", data);
+
     const existingUsername = await User.findOne({
       where: {
         username: data.username,
         isDeleted: false,
       },
     });
+    console.log("existingUsername: ", existingUsername);
 
-    if (existingUsername) {
-      throw new Error("Username is already exists!");
-    }
+    if (existingUsername)
+      return res.status(409).json({
+        success: false,
+        message: "User already exist!",
+      });
 
     const existingEmail = await User.findOne({
       where: {
@@ -23,16 +28,17 @@ const registerUser = async (data) => {
       },
     });
 
-    if (existingEmail) {
-      throw new Error("Username is already exists!");
-    }
-    // console.log(data);
+    console.log("existingEmail: ", existingEmail);
+    if (existingEmail)
+      return res
+        .status(409)
+        .json({ success: false, message: "Email already exist!" });
 
     const user = await User.create(data);
 
     return user;
   } catch (error) {
-    throw new Error("Something went wrong!", error.message);
+    next(error);
   }
 };
 

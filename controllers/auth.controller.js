@@ -8,29 +8,53 @@ const {
   makeUserAdmin,
   softDeleteUser,
 } = require("../services/auth.service.js");
+const { User } = require("../models/index.js");
+const ApiError = require("../utils/ApiError.js");
 
-const register = async (req, res) => {
-  const { error } = registerValidation.validate(req.body);
-
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-
+const register = async (req, res, next) => {
   try {
-    const user = await registerUser(req.body);
+    const { username, email, gender, dateOfBirth, password } = req.body;
+
+    // console.log(req.username);
+
+    const existingUsername = await User.findOne({
+      where: {
+        username: username,
+        isDeleted: false,
+      },
+    });
+
+    if (existingUsername) {
+      return next(new ApiError("Username is already exist!", 409));
+    }
+
+    const existingEmail = await User.findOne({
+      where: {
+        email: email,
+        isDeleted: false,
+      },
+    });
+
+    if (existingEmail) {
+      return next(new ApiError("Email is alreadd exist!", 409));
+    }
+
+    const user = await User.create({
+      username,
+      email,
+      gender,
+      dateOfBirth,
+      password,
+    });
+    // console.log("user: ", user);
+
     res.status(201).json({
       success: true,
       message: "User registered successfully.",
       user,
     });
-  } catch (err) {
-    return res.status(400).json({
-      success: false,
-      message: err.message,
-    });
+  } catch (error) {
+    return next(error);
   }
 };
 
