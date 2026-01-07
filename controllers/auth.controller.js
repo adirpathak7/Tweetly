@@ -10,6 +10,8 @@ const {
 } = require("../services/auth.service.js");
 const { User } = require("../models/index.js");
 const ApiError = require("../utils/ApiError.js");
+const { Op } = require("sequelize");
+const jwt = require("jsonwebtoken");
 
 const register = async (req, res, next) => {
   try {
@@ -58,94 +60,136 @@ const register = async (req, res, next) => {
   }
 };
 
-const login = async (req, res) => {
-  const { error } = loginValidation.validate(req.body);
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-
+const login = async (req, res, next) => {
   try {
-    const data = await loginUser(req.body.identifier, req.body.password);
-    res.status(200).json({
+    const { identifier, password } = req.body;
+
+    const existingUser = await User.findOne({
+      where: {
+        [Op.or]: [{ email: identifier }, { username: identifier }],
+        isDeleted: false,
+      },
+    });
+    console.log(existingUser);
+
+    if (!existingUser || existingUser === null) {
+      return next(new ApiError("User doesn't exists!", 404));
+    }
+
+    const isMatch = await existingUser.comparePassword(password);
+    if (!isMatch) {
+      return next(new ApiError("Invalid credentials!", 401));
+    }
+
+    const token = jwt.sign(
+      {
+        userId: existingUser.userId,
+        username: existingUser.username,
+        roleId: existingUser.roleId,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1D" }
+    );
+
+    return res.status(200).json({
       success: true,
-      ...data,
+      message: "Login successful.",
+      token,
     });
-  } catch (err) {
-    return res.status(400).json({
-      success: false,
-      message: err.message,
-    });
+  } catch (error) {
+    return next(error);
   }
 };
 
-const newAdmin = async (req, res) => {
+const newAdmin = async (req, res, next) => {
   try {
     const user = req.user;
     if (!user || user.roleId !== 2) {
-      return res
-        .status(403)
-        .json({ success: false, message: "You don't have access to change!" });
+      return next(new ApiError("You don't have access to change!", 403));
     }
 
     const userId = parseInt(req.params.userId);
     if (isNaN(userId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid user id!" });
+      return next(new ApiError("Invalid user id", 400));
     }
 
-    const updated = await makeUserAdmin(userId);
-    res.status(200).json({
+    const existingUser = await User.findByPk(userId);
+
+    if (!existingUser || existingUser === null) {
+      return next(new ApiError("User doesn't exists!", 404));
+    }
+    if (existingUser.roleId === 2) {
+      return next(new ApiError("User is already an admin!", 400));
+    }
+
+    const newAdmin = await User.update(
+      { roleId: 2 },
+      { where: { userId: userId }, isDeleted: false }
+    );
+    return res.status(200).json({
       success: true,
-      message: "User promoted to admin.",
-      user: updated,
+      message: "User promoted as an admin.",
     });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+  } catch (error) {
+    return next(error);
   }
 };
 
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
   try {
-    const admin = req.user;
-    if (!admin || admin.roleId !== 2) {
-      return res
-        .status(403)
-        .json({ success: false, message: "You don't have access to change!" });
+    const user = req.user;
+    if (!user || user.roleId !== 2) {
+      return next(new ApiError("You don't have access to change!", 403));
     }
 
     const userId = parseInt(req.params.userId);
-
-    const adminId = admin.userId;
-    if (isNaN(userId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid user id" });
-    }
+    if (isNaN(userId)) return next(new ApiError("Invalid user id!", 400));
 
     if (!userId || userId === null)
-      return res
-        .status(401)
-        .json({ success: false, message: "Please provide userId!" });
+      return next(new ApiError("User id is required", 400));
 
-    const user = await softDeleteUser(userId, adminId);
+    const existingUser = await User.findOne({
+      where: {
+        userId: userId,
+        isDeleted: false,
+      },
+    });
 
-    if (user) {
-      res.status(201).json({
-        success: true,
-        message: "User deleted successfully.",
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: err.message,
-      });
+    // console.log(existingUser);
+
+    if (!existingUser || existingUser === null) {
+      return next(
+        new ApiError("User doesn't exist or is already deleted!", 404)
+      );
     }
-  } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    if (existingUser.roleId === 2) {
+      return next(new ApiError("You can't delete the other admin!", 403));
+    }
+
+    const payload = {
+      isDeleted: true,
+      deletedBy: user.userId,
+      deletedAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const [updatedCount] = await User.update(payload, {
+      where: {
+        userId: userId,
+        isDeleted: false,
+      },
+    });
+
+    if (updatedCount === 0) {
+      return next(new ApiError("User is already deleted!", 400));
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    return next(error);
   }
 };
 

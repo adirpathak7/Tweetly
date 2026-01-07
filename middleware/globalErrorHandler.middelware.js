@@ -29,6 +29,14 @@ module.exports = (err, req, res, next) => {
   if (err.isJoi) {
     return res.status(401).json({
       success: false,
+      message: "Unauthorize:!",
+      errors: err.details.map((e) => e.message),
+    });
+  }
+
+  if (err.isJoi) {
+    return res.status(403).json({
+      success: false,
       message: "Forbidden: Access Denied!",
       errors: err.details.map((e) => e.message),
     });
@@ -44,6 +52,8 @@ module.exports = (err, req, res, next) => {
 
   if (err.status) {
     console.log("err.status in globleErrorHandle:- ", err.status);
+    console.log("err in globleErrorHandle:- ", err);
+    console.log("err in globleErrorHandle:- ", err.message);
 
     return res.status(err.status).json({
       success: false,
@@ -51,7 +61,7 @@ module.exports = (err, req, res, next) => {
     });
   }
 
-  //   console.error("Unknown error status:- ", err.status);
+  console.error("Unknown error status:- ", err.status);
   console.error("Unknown error:- ", err);
 
   res.status(500).json({
