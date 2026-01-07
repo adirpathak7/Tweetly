@@ -139,5 +139,4 @@ module.exports = {
   loginUser,
   makeUserAdmin,
   softDeleteUser,
-  isDeletedUser,
 };

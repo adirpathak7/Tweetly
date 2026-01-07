@@ -4,11 +4,11 @@ const {
   createPost,
   editPost,
   softDeletePost,
+  getOwnCreatedPost,
 } = require("../services/psot.service");
 const {
   createPostValidation,
   editPostValidation,
-  deletePostValidation,
 } = require("../validations/post.validation");
 
 exports.getPosts = async (req, res) => {
@@ -32,23 +32,21 @@ exports.getPosts = async (req, res) => {
 
 exports.getPostById = async (req, res) => {
   try {
-    const userId = req.user && req.user.userId;
-    const roleId = req.user.roleId;
-
-    if (!userId || userId === null || !roleId)
+    if (!req.user || req.user === null)
       return res.status(401).json({ success: false, message: "Unauthorized!" });
 
-    const postId = parseInt(req.params.id, 10);
-    if (isNaN(postId))
+    const postId = parseInt(req.params.id);
+
+    if (!postId || postId === null)
       return res
         .status(400)
         .json({ success: false, message: "Invalid post id" });
 
-    const post = await getPostById(postId, userId, roleId);
-    if (!post)
+    const post = await getPostById(postId, req.user.userId, req.user.roleId);
+    if (!post || post === null)
       return res
         .status(404)
-        .json({ success: false, message: "Post not found" });
+        .json({ success: false, message: "Post not found!" });
 
     return res.json({ success: true, data: post });
   } catch (err) {
@@ -56,12 +54,28 @@ exports.getPostById = async (req, res) => {
   }
 };
 
+exports.getUserOwnPost = async (req, res) => {
+  try {
+    // console.log(req.user, " and ", req.user.userId);
+    if (!req.user || req.user === null)
+      return res.status(401).json({ success: false, message: "Unauthorized!" });
+
+    const post = await getOwnCreatedPost(req.user.userId);
+    if (!post || post === null) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found!" });
+    }
+
+    return res.json({ success: true, data: post });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.createPost = async (req, res) => {
   try {
-    const userId = req.user && req.user.userId;
-    // console.log("userId is:- ", userId);
-
-    if (!userId || userId === null)
+    if (!req.user || req.user === null)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
     const { error } = createPostValidation.validate(req.body);
@@ -85,7 +99,7 @@ exports.createPost = async (req, res) => {
       mediaURL,
       mediaType,
     };
-    const post = await createPost(postData, userId);
+    const post = await createPost(postData, req.user.userId);
 
     if (post) {
       res.status(201).json({
@@ -106,18 +120,15 @@ exports.createPost = async (req, res) => {
 
 exports.editPost = async (req, res) => {
   try {
-    const userId = req.user && req.user.userId;
     const postId = parseInt(req.params.id);
 
-    // console.log("in controller editPost id: ", postId);
+    if (!req.user || req.user === null)
+      return res.status(401).json({ success: false, message: "Unauthorized!" });
 
     if (!postId || postId === null)
       return res
         .status(401)
         .json({ success: false, message: "Please provide postid!" });
-
-    if (!userId)
-      return res.status(401).json({ success: false, message: "Unauthorized!" });
 
     const { error } = editPostValidation.validate(req.body);
 
@@ -162,17 +173,16 @@ exports.editPost = async (req, res) => {
 
 exports.softDeletePost = async (req, res) => {
   try {
-    const userId = req.user && req.user.userId;
     const postId = parseInt(req.params.id);
 
-    if (!userId)
+    if (!req.user || req.user === null)
       return res.status(401).json({ success: false, message: "Unauthorized!" });
     if (!postId || postId === null)
       return res
         .status(401)
         .json({ success: false, message: "Please provide postid!" });
 
-    const post = await softDeletePost(postId, userId);
+    const post = await softDeletePost(postId, req.user.userId);
 
     if (post) {
       res.status(201).json({

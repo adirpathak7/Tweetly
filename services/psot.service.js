@@ -17,12 +17,12 @@ const getPosts = async (userId, roleId) => {
     ],
     order: [["createdAt", "DESC"]],
   });
-  // if(allPost && isDeletedUser)
+
   if (!allPost) return null;
   return allPost;
 };
 
-const getPostById = async (postId, userId, roleId) => {
+const getPostById = async (postId, roleId) => {
   const post = await Post.findOne({
     where: {
       postId,
@@ -39,12 +39,22 @@ const getPostById = async (postId, userId, roleId) => {
 
   if (!post) return null;
 
-  if (post.userId === userId) return null;
+  // if (post.userId === userId) return null;
 
   return post;
 };
 
-// const getOwnCreatedPost = async (userId) => {};
+const getOwnCreatedPost = async (userId) => {
+  const post = await Post.findAll({
+    where: {
+      userId,
+      isDeleted: false,
+    },
+  });
+
+  if (!post) return null;
+  return post;
+};
 
 const createPost = async (data, userId) => {
   // console.log("data: ", data);
@@ -118,4 +128,5 @@ module.exports = {
   createPost,
   editPost,
   softDeletePost,
+  getOwnCreatedPost,
 };
