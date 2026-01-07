@@ -77,7 +77,7 @@ const makeUserAdmin = async (userId) => {
     // console.log("userid: ", userId);
     const existingUser = await User.findByPk(userId);
 
-    if (!existingUser || existingUser == null) {
+    if (!existingUser || existingUser === null) {
       throw new Error("User doesn't exists!");
     }
     if (existingUser.roleId === 2) {

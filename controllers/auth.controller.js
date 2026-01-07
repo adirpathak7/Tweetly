@@ -70,7 +70,7 @@ const newAdmin = async (req, res) => {
     if (isNaN(userId)) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid user id" });
+        .json({ success: false, message: "Invalid user id!" });
     }
 
     const updated = await makeUserAdmin(userId);
