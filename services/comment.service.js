@@ -11,7 +11,7 @@ exports.getComments = async (postId) => {
   });
 
   if (!comments || comments.length === 0) {
-    throw new Error("No comments on this post");
+    throw new Error("No comments found on this post!");
   }
 
   return comments;
@@ -20,7 +20,7 @@ exports.getComments = async (postId) => {
 exports.addComment = async (data, userId, postId) => {
   const existPost = await Post.findByPk(postId);
 
-  if (!existPost || existPost == null) {
+  if (!existPost || existPost === null) {
     throw new Error("Post doesn't exists!");
   }
 
@@ -37,7 +37,7 @@ exports.addComment = async (data, userId, postId) => {
 exports.editComment = async (data, postId, userId, commentId) => {
   const existPost = await Post.findByPk(postId);
 
-  if (!existPost || existPost == null) {
+  if (!existPost || existPost === null) {
     throw new Error("Post doesn't exists!");
   }
 
@@ -50,7 +50,7 @@ exports.editComment = async (data, postId, userId, commentId) => {
     },
   });
 
-  if (!existComment || existComment == null) {
+  if (!existComment || existComment === null) {
     throw new Error("Comment doesn't exists!");
   }
 
@@ -73,7 +73,7 @@ exports.softDeleteComment = async (data, postId, userId, commentId) => {
   const existPost = await Post.findByPk(postId);
   //   console.log("existPost: ", existPost);
 
-  if (!existPost || existPost == null) {
+  if (!existPost || existPost === null) {
     throw new Error("Post doesn't exists!");
   }
 

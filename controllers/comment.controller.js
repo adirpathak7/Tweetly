@@ -35,10 +35,9 @@ exports.getComments = async (req, res) => {
 
 exports.addComment = async (req, res) => {
   try {
-    const userId = req.user && req.user.userId;
     const postId = req.params.postId;
 
-    if (!userId)
+    if (!req.user || req.user === null)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
     if (!postId)
@@ -54,7 +53,7 @@ exports.addComment = async (req, res) => {
         message: error.details[0].message,
       });
     }
-    const comment = await addComment(req.body, userId, postId);
+    const comment = await addComment(req.body, req.user.userId, postId);
     // console.log("post data: ", post);
 
     if (comment) {
@@ -76,13 +75,12 @@ exports.addComment = async (req, res) => {
 
 exports.editComment = async (req, res) => {
   try {
-    const userId = req.user && req.user.userId;
     const postId = req.params.postId;
     const commentId = req.params.commentId;
 
-    console.log("userId: ", userId);
+    console.log("userId: ", req.user.userId);
 
-    if (!userId)
+    if (!req.user)
       return res.status(401).json({ success: false, message: "Unauthorized!" });
 
     if (!postId || postId === null)
@@ -103,7 +101,12 @@ exports.editComment = async (req, res) => {
         message: error.details[0].message,
       });
     }
-    const comment = await editComment(req.body, postId, userId, commentId);
+    const comment = await editComment(
+      req.body,
+      postId,
+      req.user.userId,
+      commentId
+    );
 
     if (comment) {
       res.status(201).json({
@@ -123,11 +126,10 @@ exports.editComment = async (req, res) => {
 
 exports.softDeleteComment = async (req, res) => {
   try {
-    const userId = req.user && req.user.userId;
     const postId = req.params.postId;
     const commentId = req.params.commentId;
 
-    if (!userId)
+    if (!req.user || req.user === null)
       return res.status(401).json({ success: false, message: "Unauthorized!" });
 
     if (!postId || postId === null)
@@ -140,7 +142,12 @@ exports.softDeleteComment = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Please provide commentId!" });
 
-    const post = await softDeleteComment(req.body, postId, userId, commentId);
+    const post = await softDeleteComment(
+      req.body,
+      postId,
+      req.user.userId,
+      commentId
+    );
 
     if (post) {
       res.status(201).json({
