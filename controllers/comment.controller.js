@@ -18,6 +18,13 @@ exports.getComments = async (req, res, next) => {
     if (!postId || postId === null)
       return next(new ApiError("Please provide postId!", 400));
 
+    const existPost = await Post.findOne({
+      where: { postId, isDeleted: false },
+    });
+
+    if (!existPost || existPost === null)
+      return next(new ApiError("Post doesn't exists or deleted!", 404));
+
     const comments = await Comment.findAll({
       where: {
         postId: postId,
@@ -145,9 +152,6 @@ exports.softDeleteComment = async (req, res, next) => {
       },
     });
 
-    // console.log("1", req.user.userId);
-    // console.log("2", postId);
-    // console.log("3", commentId);
     if (!existComment || existComment === null)
       return next(new ApiError("Comment doesn't exists!", 404));
 

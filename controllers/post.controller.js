@@ -32,8 +32,7 @@ exports.getPosts = async (req, res, next) => {
         {
           model: User,
           attributes: ["isDeleted"],
-          where: roleId === 2,
-          isDeleted: false,
+          where: { isDeleted: false },
         },
       ],
       order: [["createdAt", "DESC"]],
