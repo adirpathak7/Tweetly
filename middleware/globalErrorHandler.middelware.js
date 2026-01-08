@@ -62,7 +62,7 @@ module.exports = (err, req, res, next) => {
   }
 
   console.error("Unknown error status:- ", err.status);
-  // console.error("Unknown error:- ", err);
+  console.error("Unknown error:- ", err);
 
   res.status(500).json({
     success: false,

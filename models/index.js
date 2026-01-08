@@ -36,7 +36,7 @@ db.User.hasMany(db.Post, { foreignKey: "userId" });
 db.Post.belongsTo(db.User, { foreignKey: "userId" });
 
 //  post deletedBy user
-db.Post.belongsTo(db.Post, {
+db.Post.belongsTo(db.User, {
   as: "deletedByUser",
   foreignKey: "deletedBy",
 });
@@ -50,7 +50,7 @@ db.Post.hasMany(db.Comment, { foreignKey: "postId" });
 db.Comment.belongsTo(db.Post, { foreignKey: "postId" });
 
 //  comment deletedBy user
-db.Comment.belongsTo(db.Comment, {
+db.Comment.belongsTo(db.User, {
   as: "deletedByUser",
   foreignKey: "deletedBy",
 });

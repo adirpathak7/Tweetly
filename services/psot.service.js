@@ -43,10 +43,6 @@ const getPostById = async (postId, roleId) => {
     ],
   });
 
-  console.log("postId data: ", postId);
-  console.log("roleId data: ", roleId);
-  console.log("post data: ", post);
-
   if (!post) return null;
 
   // if (post.userId === userId) return null;

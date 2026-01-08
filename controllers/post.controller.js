@@ -1,3 +1,5 @@
+const { Op } = require("sequelize");
+const { Post, User, Comment } = require("../models");
 const {
   getPosts,
   getPostById,
@@ -6,196 +8,218 @@ const {
   softDeletePost,
   getOwnCreatedPost,
 } = require("../services/psot.service");
+const ApiError = require("../utils/ApiError");
 const {
   createPostValidation,
   editPostValidation,
 } = require("../validations/post.validation");
+const { date } = require("joi");
 
-exports.getPosts = async (req, res) => {
+exports.getPosts = async (req, res, next) => {
   try {
     const userId = req.user && req.user.userId;
     const roleId = req.user.roleId;
+
     if (!userId || userId === null || !roleId)
-      return res.status(401).json({ success: false, message: "Unauthorized!" });
+      return next(new ApiError("Unauthorized!", 401));
 
-    const posts = await getPosts(userId, roleId);
-    if (!posts || posts === null)
-      return res
-        .status(404)
-        .json({ success: false, message: "No post found!" });
+    const allPost = await Post.findAll({
+      where: {
+        userId: { [Op.ne]: userId },
+        isDeleted: false,
+      },
+      include: [
+        {
+          model: User,
+          attributes: ["isDeleted"],
+          where: roleId === 2,
+          isDeleted: false,
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
 
-    return res.json({ success: true, data: posts });
+    if (!allPost || allPost === null)
+      return next(new ApiError("No posts found!", 404));
+
+    return res.json({ success: true, data: allPost });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };
 
-exports.getPostById = async (req, res) => {
+exports.getPostById = async (req, res, next) => {
   try {
     if (!req.user || req.user === null)
-      return res.status(401).json({ success: false, message: "Unauthorized!" });
+      return next(new ApiError("Unauthorized!", 401));
 
-    const postId = parseInt(req.params.id);
+    const postId = parseInt(req.params.postId);
 
     if (!postId || postId === null)
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid post id" });
+      return next(new ApiError("Please provide postid!", 400));
 
-    const post = await getPostById(postId, req.user.userId, req.user.roleId);
+    const post = await Post.findOne({
+      where: {
+        postId,
+        isDeleted: false,
+      },
+      include: [
+        {
+          model: User,
+          attributes: ["isDeleted"],
+          where: { isDeleted: false },
+        },
+        {
+          model: Comment,
+          attributes: ["commentText", "userId"],
+          where: { postId: postId, isDeleted: false },
+          required: false,
+        },
+      ],
+    });
+
     if (!post || post === null)
-      return res
-        .status(404)
-        .json({ success: false, message: "Post not found!" });
+      return next(new ApiError("Post not found!", 404));
 
     return res.json({ success: true, data: post });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };
 
-exports.getUserOwnPost = async (req, res) => {
+exports.getUserOwnPost = async (req, res, next) => {
   try {
-    // console.log(req.user, " and ", req.user.userId);
     if (!req.user || req.user === null)
-      return res.status(401).json({ success: false, message: "Unauthorized!" });
+      return next(new ApiError("Unauthorized!", 401));
 
-    const post = await getOwnCreatedPost(req.user.userId);
-    if (!post || post === null) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Post not found!" });
+    const post = await Post.findAll({
+      where: {
+        userId: req.user.userId,
+        isDeleted: false,
+      },
+    });
+
+    if (!post || post === null || post.length === 0) {
+      return next(new ApiError("No posts found!", 404));
     }
 
     return res.json({ success: true, data: post });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return next(error);
   }
 };
 
-exports.createPost = async (req, res) => {
+exports.createPost = async (req, res, next) => {
   try {
     if (!req.user || req.user === null)
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return next(new ApiError("Unauthorized!", 401));
 
-    const { error } = createPostValidation.validate(req.body);
-
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message,
-      });
-    }
+    const { content } = req.body;
 
     let mediaURL = null;
     let mediaType = "none";
 
     if (req.file) {
-      mediaURL = `/uploads/${req.file.filename}`;
-      mediaType = "image";
+      mediaURL = `/uploads/${req.file.filename}` || null;
+      mediaType = "image" || "none";
     }
-    const postData = {
-      ...req.body,
-      mediaURL,
-      mediaType,
-    };
-    const post = await createPost(postData, req.user.userId);
 
-    if (post) {
-      res.status(201).json({
+    const postData = {
+      content: content,
+      mediaURL: mediaURL || null,
+      mediaType: mediaType || "none",
+      userId: req.user.userId,
+    };
+
+    const post = await Post.create(postData);
+
+    if (post)
+      return res.status(201).json({
         success: true,
-        message: "Post added successfully.",
-        post,
+        message: "Post created successfully.",
+        data: post,
       });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: err.message,
-      });
-    }
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };
 
-exports.editPost = async (req, res) => {
+exports.editPost = async (req, res, next) => {
   try {
-    const postId = parseInt(req.params.id);
+    const postId = parseInt(req.params.postId);
 
     if (!req.user || req.user === null)
-      return res.status(401).json({ success: false, message: "Unauthorized!" });
+      return next(new ApiError("Unauthorized!", 401));
 
     if (!postId || postId === null)
-      return res
-        .status(401)
-        .json({ success: false, message: "Please provide postid!" });
+      return next(new ApiError("Please provide postId!", 400));
 
-    const { error } = editPostValidation.validate(req.body);
-
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message,
-      });
-    }
+    const { content } = req.body;
 
     let mediaURL = null;
     let mediaType = "none";
 
     if (req.file) {
-      mediaURL = `uploads/${req.file.filename}`;
-      mediaType = "image";
+      mediaURL = `/uploads/${req.file.filename}` || null;
+      mediaType = "image" || "none";
     }
 
-    const postData = {
-      ...req.body,
-      mediaURL,
-      mediaType,
+    const editedPost = {
+      content: content,
+      mediaURL: mediaURL || null,
+      mediaType: mediaType || "none",
+      updatedAt: new Date().toLocaleString(),
     };
-    const post = await editPost(postData, postId);
-    // console.log("editPost data: ", post);
 
-    if (post) {
-      res.status(201).json({
-        success: true,
-        message: "Post edited successfully.",
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: err.message,
-      });
-    }
+    const updatedPost = await Post.update(editedPost, {
+      where: {
+        postId: postId,
+        isDeleted: false,
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Post edited successfully.",
+    });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };
 
-exports.softDeletePost = async (req, res) => {
+exports.softDeletePost = async (req, res, next) => {
   try {
-    const postId = parseInt(req.params.id);
+    const postId = parseInt(req.params.postId);
 
     if (!req.user || req.user === null)
-      return res.status(401).json({ success: false, message: "Unauthorized!" });
+      return next(new ApiError("Unauthorized!", 401));
+
     if (!postId || postId === null)
-      return res
-        .status(401)
-        .json({ success: false, message: "Please provide postid!" });
+      return next(new ApiError("Please provide postId!", 400));
 
-    const post = await softDeletePost(postId, req.user.userId);
-
-    if (post) {
-      res.status(201).json({
-        success: true,
-        message: "Post deleted successfully.",
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: err.message,
-      });
+    const existPost = await Post.findByPk(postId);
+    if (!existPost || existPost == null || existPost.isDeleted) {
+      return next(new ApiError("Post doesn't exists or already deleted!", 404));
     }
+
+    const payload = {
+      isDeleted: true,
+      deletedBy: req.user.userId,
+      deletedAt: new Date().toLocaleString(),
+      updatedAt: new Date().toLocaleString(),
+    };
+
+    await Post.update(payload, {
+      where: {
+        postId: postId,
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Post deleted successfully.",
+    });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };

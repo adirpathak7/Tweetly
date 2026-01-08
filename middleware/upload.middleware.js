@@ -1,5 +1,6 @@
 const multer = require("multer");
 const path = require("path");
+const ApiError = require("../utils/ApiError");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -20,7 +21,7 @@ const fileFilter = (req, file, cb) => {
   ) {
     cb(null, true);
   } else {
-    cb(new Error("Only image files are allowed"), false);
+    cb(new ApiError("Only image files are allowed"), 400);
   }
 };
 
