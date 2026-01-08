@@ -16,13 +16,13 @@ module.exports = {
     await queryInterface.bulkInsert("roles", [
       {
         role: "user",
-        createdAt: new Date().toLocaleString(),
-        updatedAt: new Date().toLocaleString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         role: "admin",
-        createdAt: new Date().toLocaleString(),
-        updatedAt: new Date().toLocaleString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ]);
   },

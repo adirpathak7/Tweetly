@@ -1,166 +1,174 @@
+const { Comment, Post } = require("../models");
 const {
   getComments,
   addComment,
   editComment,
   softDeleteComment,
 } = require("../services/comment.service");
+const ApiError = require("../utils/ApiError");
 const {
   addCommentValidation,
   editCommentValidation,
 } = require("../validations/comment.validation");
 
-exports.getComments = async (req, res) => {
+exports.getComments = async (req, res, next) => {
   try {
     const postId = req.params.postId;
-    // console.log("postId: ", postId);
 
     if (!postId || postId === null)
-      return res
-        .status(401)
-        .json({ success: false, message: "Please provide postid!" });
+      return next(new ApiError("Please provide postId!", 400));
 
-    const comments = await getComments(postId);
-    console.log("comments: ", comments);
+    const comments = await Comment.findAll({
+      where: {
+        postId: postId,
+        isDeleted: false,
+      },
+      order: [["createdAt", "DESC"]],
+    });
 
-    if (!comments || comments === null) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Comments doesn't exist!" });
+    if (!comments || comments === null || comments.length === 0) {
+      return next(new ApiError("No comments found on this post!", 404));
     }
     return res.json({ success: true, data: comments });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };
 
-exports.addComment = async (req, res) => {
+exports.addComment = async (req, res, next) => {
   try {
     const postId = req.params.postId;
-
+    const data = req.body;
     if (!req.user || req.user === null)
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return next(new ApiError("Unauthorized!", 401));
 
-    if (!postId)
-      return res
-        .status(404)
-        .json({ success: false, message: "Please provide postId!" });
+    if (!postId || postId === null)
+      return next(new ApiError("Please provide postId!", 400));
 
-    const { error } = addCommentValidation.validate(req.body);
+    const existPost = await Post.findOne({
+      where: { postId, isDeleted: false },
+    });
 
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message,
-      });
-    }
-    const comment = await addComment(req.body, req.user.userId, postId);
-    // console.log("post data: ", post);
+    if (!existPost || existPost === null)
+      return next(new ApiError("Post doesn't exists or deleted!", 404));
 
-    if (comment) {
-      res.status(201).json({
-        success: true,
-        message: "Comment added successfully.",
-        comment,
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: err.message,
-      });
-    }
+    const payload = {
+      commentText: data.commentText,
+      postId: postId,
+      userId: req.user.userId,
+    };
+
+    await Comment.create(payload);
+    res.status(201).json({
+      success: true,
+      message: "Comment added successfully.",
+    });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };
 
-exports.editComment = async (req, res) => {
+exports.editComment = async (req, res, next) => {
   try {
     const postId = req.params.postId;
     const commentId = req.params.commentId;
 
-    console.log("userId: ", req.user.userId);
-
-    if (!req.user)
-      return res.status(401).json({ success: false, message: "Unauthorized!" });
+    const data = req.body;
+    if (!req.user) return next(new ApiError("Unauthorized!", 401));
 
     if (!postId || postId === null)
-      return res
-        .status(401)
-        .json({ success: false, message: "Please provide postid!" });
+      return next(new ApiError("Please provide postId!", 400));
 
     if (!commentId || commentId === null)
-      return res
-        .status(401)
-        .json({ success: false, message: "Please provide commentId!" });
+      return next(new ApiError("Please provide commentId!", 400));
 
-    const { error } = editCommentValidation.validate(req.body);
+    const existPost = await Post.findByPk(postId);
 
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: error.details[0].message,
-      });
-    }
-    const comment = await editComment(
-      req.body,
-      postId,
-      req.user.userId,
-      commentId
-    );
+    if (!existPost || existPost === null)
+      return next(new ApiError("Post doesn't exists!", 404));
 
-    if (comment) {
-      res.status(201).json({
-        success: true,
-        message: "Comment edited successfully.",
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: err.message,
-      });
-    }
+    const existComment = await Comment.findOne({
+      where: {
+        postId: postId,
+        userId: req.user.userId,
+        commentId: commentId,
+        isDeleted: false,
+      },
+    });
+
+    if (!existComment || existComment === null)
+      return next(new ApiError("Comment doesn't exists!", 404));
+
+    const payload = {
+      commentText: data.commentText,
+      updatedAt: new Date().toLocaleString(),
+    };
+
+    const editedComment = await Comment.update(payload, {
+      where: {
+        commentId: commentId,
+      },
+    });
+    res.status(201).json({
+      success: true,
+      message: "Comment edited successfully.",
+    });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };
 
-exports.softDeleteComment = async (req, res) => {
+exports.softDeleteComment = async (req, res, next) => {
   try {
     const postId = req.params.postId;
     const commentId = req.params.commentId;
 
     if (!req.user || req.user === null)
-      return res.status(401).json({ success: false, message: "Unauthorized!" });
+      return next(new ApiError("Unauthorized!", 401));
 
     if (!postId || postId === null)
-      return res
-        .status(401)
-        .json({ success: false, message: "Please provide postId!" });
+      return next(new ApiError("Please provide postId!", 400));
 
     if (!commentId || commentId === null)
-      return res
-        .status(401)
-        .json({ success: false, message: "Please provide commentId!" });
+      return next(new ApiError("Please provide commentId!", 400));
 
-    const post = await softDeleteComment(
-      req.body,
-      postId,
-      req.user.userId,
-      commentId
-    );
+    const existPost = await Post.findByPk(postId);
 
-    if (post) {
-      res.status(201).json({
-        success: true,
-        message: "Comment deleted successfully.",
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: err.message,
-      });
-    }
+    if (!existPost || existPost === null)
+      return next(new ApiError("Post doesn't exists!", 404));
+
+    const existComment = await Comment.findOne({
+      where: {
+        postId: postId,
+        userId: req.user.userId,
+        commentId: commentId,
+      },
+    });
+
+    // console.log("1", req.user.userId);
+    // console.log("2", postId);
+    // console.log("3", commentId);
+    if (!existComment || existComment === null)
+      return next(new ApiError("Comment doesn't exists!", 404));
+
+    const payload = {
+      isDeleted: true,
+      deletedBy: req.user.userId,
+      deletedAt: new Date().toLocaleString(),
+      updatedAt: new Date().toLocaleString(),
+    };
+
+    const data = await Comment.update(payload, {
+      where: {
+        commentId: commentId,
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Comment deleted successfully.",
+    });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    return next(err);
   }
 };

@@ -33,8 +33,8 @@ module.exports = {
         dateOfBirth: "1990-01-01",
         password: hashPassword,
         roleId: rolesData[0].roleId,
-        createdAt: new Date().toLocaleString(),
-        updatedAt: new Date().toLocaleString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ]);
   },
