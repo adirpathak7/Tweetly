@@ -51,9 +51,9 @@ module.exports = (err, req, res, next) => {
   }
 
   if (err.status) {
-    console.log("err.status in globleErrorHandle:- ", err.status);
-    console.log("err in globleErrorHandle:- ", err);
-    console.log("err in globleErrorHandle:- ", err.message);
+    // console.log("err.status in globleErrorHandle:- ", err.status);
+    // console.log("err in globleErrorHandle:- ", err);
+    // console.log("err in globleErrorHandle:- ", err.message);
 
     return res.status(err.status).json({
       success: false,
@@ -62,7 +62,7 @@ module.exports = (err, req, res, next) => {
   }
 
   console.error("Unknown error status:- ", err.status);
-  console.error("Unknown error:- ", err);
+  // console.error("Unknown error:- ", err);
 
   res.status(500).json({
     success: false,

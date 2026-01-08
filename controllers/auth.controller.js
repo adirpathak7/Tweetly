@@ -70,10 +70,10 @@ const login = async (req, res, next) => {
         isDeleted: false,
       },
     });
-    console.log(existingUser);
+    // console.log(existingUser);
 
     if (!existingUser || existingUser === null) {
-      return next(new ApiError("User doesn't exists!", 404));
+      return next(new ApiError("Account doesn't exists!", 404));
     }
 
     const isMatch = await existingUser.comparePassword(password);
@@ -154,8 +154,6 @@ const deleteUser = async (req, res, next) => {
         isDeleted: false,
       },
     });
-
-    // console.log(existingUser);
 
     if (!existingUser || existingUser === null) {
       return next(
