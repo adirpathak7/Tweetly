@@ -167,7 +167,6 @@ exports.editPost = async (req, res, next) => {
       content: content,
       mediaURL: mediaURL || null,
       mediaType: mediaType || "none",
-      updatedAt: new Date().toLocaleString(),
     };
 
     const updatedPost = await Post.update(editedPost, {
@@ -205,7 +204,6 @@ exports.softDeletePost = async (req, res, next) => {
       isDeleted: true,
       deletedBy: req.user.userId,
       deletedAt: new Date().toLocaleString(),
-      updatedAt: new Date().toLocaleString(),
     };
 
     await Post.update(payload, {

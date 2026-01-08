@@ -168,7 +168,6 @@ const deleteUser = async (req, res, next) => {
       isDeleted: true,
       deletedBy: user.userId,
       deletedAt: new Date(),
-      updatedAt: new Date(),
     };
 
     const [updatedCount] = await User.update(payload, {

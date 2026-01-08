@@ -108,7 +108,6 @@ exports.editComment = async (req, res, next) => {
 
     const payload = {
       commentText: data.commentText,
-      updatedAt: new Date().toLocaleString(),
     };
 
     const editedComment = await Comment.update(payload, {
@@ -159,7 +158,6 @@ exports.softDeleteComment = async (req, res, next) => {
       isDeleted: true,
       deletedBy: req.user.userId,
       deletedAt: new Date().toLocaleString(),
-      updatedAt: new Date().toLocaleString(),
     };
 
     const data = await Comment.update(payload, {
