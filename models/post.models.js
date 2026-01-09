@@ -33,14 +33,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      deletedAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
     },
     {
       tableName: "posts",
       timestamps: true,
+      paranoid: true,
     }
   );
   return Post;

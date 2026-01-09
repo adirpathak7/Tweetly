@@ -24,6 +24,8 @@ const authMiddleware = (checkRole = false) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       req.user = { userId: decoded.userId, roleId: decoded.roleId };
+      // console.log("req.user ", req.user);
+      // console.log("checkRole ", checkRole);
 
       if (checkRole) {
         const postId = parseInt(req.params.id || req.params.postId, 10);

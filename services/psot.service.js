@@ -1,33 +1,66 @@
-const { Op } = require("sequelize");
-const { Post } = require("../models");
+const { Op, where } = require("sequelize");
+const { Post, User, Comment } = require("../models");
+const { isDeletedUser } = require("./auth.service");
 
-const getPosts = async (userId) => {
+const getPosts = async (userId, roleId) => {
   const allPost = await Post.findAll({
     where: {
       userId: { [Op.ne]: userId },
       isDeleted: false,
     },
+    include: [
+      {
+        model: User,
+        attributes: ["isDeleted"],
+        where: roleId === 2 ? {} : { isDeleted: false },
+      },
+    ],
     order: [["createdAt", "DESC"]],
   });
+
   if (!allPost) return null;
+  return allPost;
 };
 
-const getPostById = async (postId, userId) => {
+const getPostById = async (postId, roleId) => {
   const post = await Post.findOne({
     where: {
       postId,
       isDeleted: false,
     },
+    include: [
+      {
+        model: User,
+        attributes: ["isDeleted"],
+        where: roleId === 2 ? {} : { isDeleted: false },
+      },
+      {
+        model: Comment,
+        attributes: ["isDeleted", "postId"],
+        where: postId === post.postId,
+        isDeleted: false,
+      },
+    ],
   });
 
   if (!post) return null;
 
-  if (post.userId === userId) return null;
+  // if (post.userId === userId) return null;
 
   return post;
 };
 
-const getOwnCreatedPost = async (userId) => {};
+const getOwnCreatedPost = async (userId) => {
+  const post = await Post.findAll({
+    where: {
+      userId,
+      isDeleted: false,
+    },
+  });
+
+  if (!post) return null;
+  return post;
+};
 
 const createPost = async (data, userId) => {
   // console.log("data: ", data);
@@ -101,4 +134,5 @@ module.exports = {
   createPost,
   editPost,
   softDeletePost,
+  getOwnCreatedPost,
 };

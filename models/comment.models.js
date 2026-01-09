@@ -27,14 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      deletedAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
     },
     {
       tableName: "comments",
       timestamp: true,
+      paranoid: true,
     }
   );
   return Comment;
