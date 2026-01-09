@@ -13,7 +13,7 @@ const {
   createPostValidation,
   editPostValidation,
 } = require("../validations/post.validation");
-const { date } = require("joi");
+const { date, required } = require("joi");
 
 exports.getPosts = async (req, res, next) => {
   try {
@@ -22,21 +22,21 @@ exports.getPosts = async (req, res, next) => {
 
     if (!userId || userId === null || !roleId)
       return next(new ApiError("Unauthorized!", 401));
+    console.log(userId);
+    console.log(roleId);
 
     const allPost = await Post.findAll({
       where: {
         userId: { [Op.ne]: userId },
-        isDeleted: false,
       },
       include: [
         {
           model: User,
-          attributes: ["isDeleted"],
-          where: { isDeleted: false },
         },
       ],
       order: [["createdAt", "DESC"]],
     });
+    console.log(allPost);
 
     if (!allPost || allPost === null)
       return next(new ApiError("No posts found!", 404));
@@ -57,22 +57,25 @@ exports.getPostById = async (req, res, next) => {
     if (!postId || postId === null)
       return next(new ApiError("Please provide postid!", 400));
 
-    const post = await Post.findOne({
-      where: {
-        postId,
-        isDeleted: false,
-      },
+    const post = await Post.findByPk(postId, {
       include: [
         {
-          model: User,
-          attributes: ["isDeleted"],
-          where: { isDeleted: false },
-        },
-        {
           model: Comment,
-          attributes: ["commentText", "userId"],
-          where: { postId: postId, isDeleted: false },
-          required: false,
+          attributes: ["commentText"],
+          as: "All Comments of post",
+          // order: [['createdAt', 'DESC']],
+          separate: true,
+          order: [["createdAt", "DESC"]],
+          // limit:1,
+          // nested: true,
+          include: [
+            {
+              model: User,
+              attributes: ["username"],
+              required: true,
+              // as: "User",
+            },
+          ],
         },
       ],
     });
@@ -94,7 +97,7 @@ exports.getUserOwnPost = async (req, res, next) => {
     const post = await Post.findAll({
       where: {
         userId: req.user.userId,
-        isDeleted: false,
+        // isDeleted: false,
       },
     });
 
@@ -196,7 +199,7 @@ exports.softDeletePost = async (req, res, next) => {
       return next(new ApiError("Please provide postId!", 400));
 
     const existPost = await Post.findByPk(postId);
-    if (!existPost || existPost == null || existPost.isDeleted) {
+    if (!existPost || existPost === null || existPost.isDeleted) {
       return next(new ApiError("Post doesn't exists or already deleted!", 404));
     }
 
@@ -220,3 +223,65 @@ exports.softDeletePost = async (req, res, next) => {
     return next(err);
   }
 };
+
+// exports.getPostWithComments = async (req, res, next) => {
+//   try {
+//     const post = await Post.findByPk(req.params.postId, {
+//       include: [
+//         {
+//           model: Comment,
+//           attributes: ["commentText"],
+//           include: [
+//             {
+//               model: User,
+//               attributes: [],
+//               required: true,
+//             },
+//           ],
+//         },
+//       ],
+//     });
+//     // console.log(post);
+
+//     return res.json({ success: true, data: post });
+//   } catch (error) {
+//     return next(error);
+//   }
+// };
+
+exports.likePost = async (req, res, next) => {
+  try {
+    const postId = req.params.postId;
+
+    if (!postId) {
+      return next(new ApiError("Please provide postId!", 400));
+    }
+
+    if (!req.user) {
+      return next(new ApiError("Unauthorized!", 401));
+    }
+
+    const user = await User.findByPk(req.user.userId);
+    if (!user) {
+      return next(new ApiError("User not found!", 404));
+    }
+
+    const post = await Post.findByPk(postId);
+    if (!post) {
+      return next(new ApiError("Post not found!", 404));
+    }
+
+    const data = await user.addPost(post);
+    console.log("data is: ", data);
+
+    // user.save();
+    return res.status(201).json({
+      success: true,
+      message: "Post liked successfully.",
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// hooks, index, scopes, transection, migration

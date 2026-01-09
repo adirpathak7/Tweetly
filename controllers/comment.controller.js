@@ -174,3 +174,7 @@ exports.softDeleteComment = async (req, res, next) => {
     return next(err);
   }
 };
+
+exports.destroy = async (req,res,next)=>{
+  
+}

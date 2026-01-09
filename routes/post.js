@@ -6,6 +6,8 @@ const {
   editPost,
   softDeletePost,
   getUserOwnPost,
+  getPostWithComments,
+  likePost,
 } = require("../controllers/post.controller");
 const authMiddleware = require("../middleware/auth.middleware");
 const upload = require("../middleware/upload.middleware");
@@ -35,5 +37,5 @@ router.put(
   editPost
 );
 router.delete("/:postId", authMiddleware(true), softDeletePost);
-
+router.post("/likePost/:postId", authMiddleware(), likePost);
 module.exports = router;

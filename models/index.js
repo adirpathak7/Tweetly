@@ -43,11 +43,18 @@ db.Post.belongsTo(db.User, {
 });
 
 //  user -> comment  (1-M)
-db.User.hasMany(db.Comment, { foreignKey: "userId" });
+db.User.hasMany(db.Comment, {
+  foreignKey: "userId",
+  onDelete: "CASCADE",
+});
 db.Comment.belongsTo(db.User, { foreignKey: "userId" });
 
 //  post -> comment  (1-M)
-db.Post.hasMany(db.Comment, { foreignKey: "postId" });
+db.Post.hasMany(db.Comment, {
+  foreignKey: "postId",
+  onDelete: "CASCADE",
+  as: "All Comments of post",
+});
 db.Comment.belongsTo(db.Post, { foreignKey: "postId" });
 
 //  comment deletedBy user
@@ -56,4 +63,6 @@ db.Comment.belongsTo(db.User, {
   foreignKey: "deletedBy",
 });
 
+db.User.belongsToMany(db.Post, { through: "postLikes", foreignKey: "userId" });
+db.Post.belongsToMany(db.User, { through: "postLikes", foreignKey: "postId" });
 module.exports = db;

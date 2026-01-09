@@ -96,6 +96,8 @@ async function startServer() {
     await db.sequelize.authenticate();
 
     // await db.sequelize.sync({ alter: true });
+    // await db.sequelize.sync({ force: true });
+
     console.log("Database connected");
   } catch (error) {
     console.error("Failed to start server:", error);
