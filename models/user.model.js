@@ -51,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
 
   const bcrypt = require("bcrypt");
 
-  User.addHook("beforeSave", async (user, options) => {
+  User.addHook("beforeSave", async (user) => {
     if (!user.changed("password")) return;
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(user.password, salt);
